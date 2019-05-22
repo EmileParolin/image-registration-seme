@@ -1,4 +1,6 @@
 import numpy as np
+from pyIR import get_pi
+from pyIR import get_t
 na = np.newaxis
 
 # Data points: random

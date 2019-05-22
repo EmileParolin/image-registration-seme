@@ -38,16 +38,30 @@ def get_t(x, y, pi):
     Compute linear transformation corresponding for a given optimal
     transformation matrix.
     """
-    piy = np.sum(pi[:,:,na] * y[:,na,:], axis=1)
+    piy = np.sum(pi[:,:,na] * y[:,na,:], axis=0)
     # matrix M in argmin_x (x'Mx + q'x)
     mis = x[:,na,:] * x[:,:,na]
     Mis = np.kron(np.eye(2), mis)
     M = np.sum(Mis, axis=0)
     # vector q in argmin_x (x'Mx + q'x)
-    q = -2*np.sum(np.tile(x,2) * np.repeat(piy,2,axis=1), axis=0)
+    qis = -2*np.sum(np.tile(x,2) * np.repeat(piy,2,axis=1), axis=0)
+    q = -2*np.sum(qis, axis=0)
     # Quadratic optimization
     sol = solvers.qp(2*matrix(M), matrix(q))
     A = np.asarray(sol['x']).reshape(2,2)
     # affine part of transformation
     b = np.mean(y-x, axis=0)
+    #b = np.mean(y-np.sum(A[na,:,:] * x[:,na,:], axis=1)*x, axis=0)
     return sol, A, b
+
+
+N = 25
+x = np.vstack((np.linspace(1,N,N), np.linspace(1,N,N))).T
+x.shape
+y = 4*x[::-1]+2
+
+x = np.array([[-1,-1], [-1,1], [1,-1], [6,1]])
+y = 4 * x + 2
+
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
