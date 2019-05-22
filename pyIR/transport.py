@@ -40,28 +40,111 @@ def get_t(x, y, pi):
     """
     piy = np.sum(pi[:,:,na] * y[:,na,:], axis=0)
     # matrix M in argmin_x (x'Mx + q'x)
-    mis = x[:,na,:] * x[:,:,na]
-    Mis = np.kron(np.eye(2), mis)
-    M = np.sum(Mis, axis=0)
+    mais = x[:,na,:] * x[:,:,na]
+    Mais = np.kron(np.eye(2), mais)
+    Ma = np.sum(Mais, axis=0)
+    sx = np.sum(x, axis=0)
+    mb = np.vstack((np.kron(sx, [1,0]).reshape(2,2), np.kron(sx, [0,1]).reshape(2,2)))
+    M = np.vstack((np.hstack((Ma, mb)), np.hstack((mb.T, np.eye(2)))))
+    for i in np.arange(4):
+        M[i,i] += 1.
     # vector q in argmin_x (x'Mx + q'x)
-    qis = -2*np.sum(np.tile(x,2) * np.repeat(piy,2,axis=1), axis=0)
-    q = -2*np.sum(qis, axis=0)
-    # Quadratic optimization
-    sol = solvers.qp(2*matrix(M), matrix(q))
-    A = np.asarray(sol['x']).reshape(2,2)
-    # affine part of transformation
-    b = np.mean(y-x, axis=0)
-    #b = np.mean(y-np.sum(A[na,:,:] * x[:,na,:], axis=1)*x, axis=0)
+    qais = np.tile(x,2) * np.repeat(piy,2,axis=1)
+    qa = np.sum(qais, axis=0)
+    qb = np.sum(piy, axis=0)
+    q = -2 * np.hstack((qa, qb))
+    # Quadratic optimization: expect P, q in argmin_x (0.5 * x'Px + q'x)
+    sol = solvers.qp(matrix(2 * M), matrix(q))
+    Ab = np.asarray(sol['x'])
+    A = Ab[0:4].reshape(2,2)
+    b = Ab[4:6]
     return sol, A, b
+
 
 
 N = 25
 x = np.vstack((np.linspace(1,N,N), np.linspace(1,N,N))).T
 x.shape
-y = 4*x[::-1]+2
+y = 4. * x[::-1] + 2.
 
-x = np.array([[-1,-1], [-1,1], [1,-1], [6,1]])
-y = 4 * x + 2
+x = np.array([[1,2]])
+y = np.array([[3,4]])
+pi = np.eye(1)
+y = 4. * x + 2.
+y = 4. * x + 2.
 
+N = 4
+x = np.vstack((np.random.normal(0,1,N), np.zeros(N))).T
+y = np.vstack((np.random.normal(0,10,N), np.zeros(N))).T
+y = 2*x
+pi = np.eye(N)
+
+x = np.array([[-1,-1], [-1,1], [1,-1], [1,1]])
+x
+
+x = np.array([[1,-1]])
+y = np.array([[1,0]])
+
+x = np.vstack((np.linspace(1,N,N), -3*np.linspace(1,N,N)+4)).T
+x
+
+N = 50
+x = np.vstack((np.sort(np.random.normal(0,1,N)), np.zeros(N))).T
+y = np.vstack((np.sort(np.random.normal(5,1,N)), np.zeros(N))).T
 res, pi = get_pi(x, y)
 sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+y = 1. * x
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+y = 2. * x
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+y = 1. * x + 3.
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+y = 4. * x + 3.
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+####################################
+
+x = np.array([[-1,-1], [-1,1], [1,-1], [6,1]])
+y = 1. * x
+res, pi = get_pi(x, y)
+sol, A, b = get_t(x, y, pi)
+np.round(A)
+np.round(b)
+
+piy = 1*y#np.sum(pi[:,:,na] * y[:,na,:], axis=0)
+# matrix M in argmin_x (x'Mx + q'x)
+mais = x[:,na,:] * x[:,:,na]
+Mais = np.kron(np.eye(2), mais)
+Ma = np.sum(Mais, axis=0)
+sx = np.sum(x, axis=0)
+mb = np.vstack((np.kron(sx, [1,0]).reshape(2,2), np.kron(sx, [0,1]).reshape(2,2)))
+M = np.vstack((np.hstack((Ma, mb)), np.hstack((mb.T, np.eye(2)))))
+M += np.eye(6)
+# vector q in argmin_x (x'Mx + q'x)
+qais = np.tile(x,2) * np.repeat(piy,2,axis=1)
+qa = np.sum(qais, axis=0)
+qb = np.sum(piy, axis=0)
+q = -2 * np.hstack((qa, qb))
+# Quadratic optimization: expect P, q in argmin_x (0.5 * x'Px + q'x)
+sol = solvers.qp(matrix(2 * M), matrix(q))
+Ab = np.asarray(sol['x'])
+A = Ab[0:4].reshape(2,2)
+b = Ab[4:6]
