@@ -87,5 +87,6 @@ def get_t(x, y, pi, distance, affine_transfo, pi_prod):
     piy = pi_prod(pi, y)
     x0 = get_initial_guess()
     args = (x, piy, distance, affine_transfo)
-    A, b = get_Ab(fmin_cg(phi, x0, args=args))
-    return A, b
+    sol = fmin_cg(phi, x0, args=args, full_output=True)
+    A, b = get_Ab(sol[0])
+    return sol, A, b

@@ -16,10 +16,21 @@ from gaussians import fit_gaussians
 import matplotlib.pyplot as plt
 na = np.newaxis
 
-n_s = 50
-Ximg, Ximg_black, Ximg_s = getImage("../images/test/cat0.png", n_s=n_s)
-Yimg, Yimg_black, Yimg_s = getImage("../images/test/cat2.png", n_s=n_s)
+original = "../images/Cas1_lung_biopsy/HLA.png"
+target = "../images/Cas1_lung_biopsy/cd.png"
 
+original = "../images/test/malevich0.png"
+target = "../images/test/malevich1.png"
+
+original = "../images/test/cat0.png"
+target = "../images/test/cat4.png"
+
+# Parameters
+n_s = 50 # Number of sampling points
+threshold = .1 # Pixel detection threshold
+# Image models
+Ximg, Ximg_black, Ximg_s = getImage(original, n_s=n_s, threshold=threshold)
+Yimg, Yimg_black, Yimg_s = getImage(target, n_s=n_s, threshold=threshold)
 # Position and color of all image pixels
 xij, X = Ximg_black
 yij, Y = Yimg_black
@@ -48,7 +59,7 @@ else :
 # Solve optimal transport problem
 res, pi = get_pi(x, y, distance)
 # Compute affine transformation
-A, b = get_t(x, y, pi, distance, affine_transfo, pi_prod)
+sol, A, b = get_t(x, y, pi, distance, affine_transfo, pi_prod)
 # Apply affine transformation to image pixels
 zij = np.dot(A[na,:,:], xij.T).T[:,:,0] + b[na,:]
 
