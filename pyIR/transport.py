@@ -54,3 +54,14 @@ def get_t(x, y, pi):
     A, b = get_Ab(fmin_cg(phi, x0, args=(x, piy)))
     return A, b
 
+
+def wasserstein(gauss1, gauss2):
+    mu1 = gauss1[0]
+    mu2 = gauss2[0]
+    
+    cov1 = gauss1[1]
+    cov2 = gauss2[1]
+    
+    sigma = cov1 + cov2 -2 * (np.dot(np.dot(cov1**(1/2),(cov2)), cov1**(1/2)) ** (1/2))
+    dist = np.linalg.norm(mu1 - mu2) + np.matrix.trace(sigma)
+    return dist
