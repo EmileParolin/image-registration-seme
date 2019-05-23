@@ -67,3 +67,8 @@ def wasserstein(gauss1, gauss2):
     dist = np.linalg.norm(mu1 - mu2)**2 + np.matrix.trace(sigma)
     return dist
 
+def gaussian_transfo(A, b, y):
+    prod = []
+    for i in range(len(y)):
+        prod.append((A @ y[i][0] + b, A @ y[i][1] @ A.T))
+    return prod
