@@ -1,8 +1,10 @@
 import numpy as np
 import scipy
 from scipy.optimize import linprog
-from scipy.optimize import fmin_cg
 from scipy.sparse import coo_matrix
+import cvxopt # Quadratic optimization
+from cvxopt import matrix
+from cvxopt import solvers
 import matplotlib.pyplot as plt
 na = np.newaxis
 
@@ -32,45 +34,44 @@ def get_pi(x, y):
     return res, pi
 
 
-def get_Ab(t):
-    A = t[0:4].reshape(2,2)
-    b = t[4:6]
-    return A, b
-
-
-def phi(t, *args):
-    x, y = args
-    A, b = get_Ab(t)
-    r = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:] - y
-    n = np.linalg.norm(r, axis=1)**2
-    return np.sum(n)
-
-
 def get_t(x, y, pi):
-    piy = np.sum(pi[:,:,na] * y[na,:,:], axis=1)
-    x0 = np.zeros(6)
-    x0[0] = 1
-    x0[3] = 1
-    A, b = get_Ab(fmin_cg(phi, x0, args=(x, piy)))
-    return A, b
+    """
+    Compute linear transformation corresponding for a given optimal
+    transformation matrix.
+    """
+    piy = 1.*y#np.dot(pi[:,:,na], y.T).T[:,:,0]
+    # matrix M in argmin_x (x'Mx + q'x)
+    mais = x[:,na,:] * x[:,:,na]
+    Mais = np.kron(np.eye(2), mais)
+    Ma = np.sum(Mais, axis=0)
+    sx = np.sum(x, axis=0)
+    mb = np.vstack((np.kron(sx, [1,0]).reshape(2,2), np.kron(sx, [0,1]).reshape(2,2)))
+    M = np.vstack((np.hstack((Ma, mb)), np.hstack((mb.T, np.eye(2)))))
+    print(np.linalg.det(M))
+    print(np.linalg.eigvals(M))
+    # vector q in argmin_x (x'Mx + q'x)
+    qais = np.tile(x,2) * np.repeat(piy,2,axis=1)
+    qa = np.sum(qais, axis=0)
+    qb = np.sum(piy, axis=0)
+    q = -2 * np.hstack((qa, qb))
+    # Quadratic optimization: expect P, q in argmin_x (0.5 * x'Px + q'x)
+    sol = solvers.qp(matrix(2 * M), matrix(q))
+    Ab = np.asarray(sol['x'])
+    A = Ab[0:4].reshape(2,2)
+    b = Ab[4:6]
+    return sol, A, b
 
 
-N = 50
+N = 25
 A = 7*np.eye(2)
 b = np.asarray([2., 3.])
 x = np.vstack((np.random.normal(0,1,N), np.random.normal(10,4,N))).T
 y = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
 
-N = 50
-x = np.vstack((np.sort(np.random.normal(0,1,N)), np.sort(np.random.normal(0,10,N)))).T
-y = np.vstack((np.sort(np.random.normal(10,10,N)), np.sort(np.random.normal(3,1,N)))).T
+#res, pi = get_pi(x, y)
+pi = np.eye(y.shape[0])
+sol, A, b = get_t(x, y, pi)
 
-N = 50
-x = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
-y = np.vstack((np.random.normal(10,10,N), np.random.normal(3,5,N))).T
-
-res, pi = get_pi(x, y)
-A, b = get_t(x, y, pi)
 z = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
 
 plt.scatter(x[:,0], x[:,1])
