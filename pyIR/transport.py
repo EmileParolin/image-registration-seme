@@ -54,25 +54,3 @@ def get_t(x, y, pi):
     A, b = get_Ab(fmin_cg(phi, x0, args=(x, piy)))
     return A, b
 
-
-N = 50
-A = 7*np.eye(2)
-b = np.asarray([2., 3.])
-x = np.vstack((np.random.normal(0,1,N), np.random.normal(10,4,N))).T
-y = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
-
-N = 50
-x = np.vstack((np.sort(np.random.normal(0,1,N)), np.sort(np.random.normal(0,10,N)))).T
-y = np.vstack((np.sort(np.random.normal(10,10,N)), np.sort(np.random.normal(3,1,N)))).T
-
-N = 50
-x = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
-y = np.vstack((np.random.normal(10,10,N), np.random.normal(3,5,N))).T
-
-res, pi = get_pi(x, y)
-A, b = get_t(x, y, pi)
-z = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
-
-plt.scatter(x[:,0], x[:,1])
-plt.scatter(y[:,0], y[:,1])
-plt.scatter(z[:,0], z[:,1])
