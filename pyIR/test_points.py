@@ -41,14 +41,25 @@ if False :
     y = np.vstack((np.random.normal(10,10,N), np.random.normal(3,2,N))).T
     res, pi, A, b, z = get_transfo(x, y)
 
-    # Generating some random points (cross)
+    # Generating some random points (L with reflection)
     N = 25
-    x1 = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
-    x2 = np.vstack((np.random.normal(12,7,N), np.random.normal(-15,0.5,N))).T
-    y1 = np.vstack((np.random.normal(10,10,N), np.random.normal(-4,2,N))).T
+    x1 = np.vstack((np.random.normal(18,1,N), np.random.normal(18,10,N))).T
+    x2 = np.vstack((np.random.normal(29,7,N), np.random.normal(3,0.5,N))).T
+    y1 = np.vstack((np.random.normal(-10,10,N), np.random.normal(-8,2,N))).T
     y2 = np.vstack((np.random.normal(0,0.1,N), np.random.normal(3,8,N))).T
     x = np.vstack((x1, x2))
     y = np.vstack((y1, y2))
+    res, pi, A, b, z = get_transfo(x, y)
+
+    # Generating some random points (L with affine transformation)
+    # with prescribed affine transformation: A, b random
+    N = 25
+    x1 = np.vstack((np.random.normal(18,1,N), np.random.normal(18,10,N))).T
+    x2 = np.vstack((np.random.normal(29,9,N), np.random.normal(3,0.5,N))).T
+    x = np.vstack((x1, x2))
+    A0 = 3 * np.random.rand(2,2) + 7 * np.eye(2)
+    b0 = 8 * np.random.rand(2)
+    y = affine_transfo(A0, b0, x)
     res, pi, A, b, z = get_transfo(x, y)
 
     # y = x
@@ -76,8 +87,17 @@ if False :
 
     # Prescribed affine transformation: A, b random
     N = 50
-    A0 = 3 * np.random.rand(2,2)
+    A0 = 3 * np.random.rand(2,2) + 2 * np.eye(2)
     b0 = 8 * np.random.rand(2)
     x = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
     y = affine_transfo(A0, b0, x)
+    res, pi, A, b, z = get_transfo(x, y)
+
+    # Prescribed affine transformation: A, b random
+    N = 50
+    A0 = 3 * np.random.rand(2,2) + 2 * np.eye(2)
+    b0 = 8 * np.random.rand(2)
+    x = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
+    xbis = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
+    y = affine_transfo(A0, b0, xbis)
     res, pi, A, b, z = get_transfo(x, y)
