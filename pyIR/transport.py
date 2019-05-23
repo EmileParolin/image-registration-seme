@@ -3,6 +3,7 @@ import scipy
 from scipy.optimize import linprog
 from scipy.optimize import fmin_cg
 from scipy.sparse import coo_matrix
+from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 na = np.newaxis
 
@@ -62,6 +63,7 @@ def wasserstein(gauss1, gauss2):
     cov1 = gauss1[1]
     cov2 = gauss2[1]
     
-    sigma = cov1 + cov2 -2 * (np.dot(np.dot(cov1**(1/2),(cov2)), cov1**(1/2)) ** (1/2))
-    dist = np.linalg.norm(mu1 - mu2) + np.matrix.trace(sigma)
+    sigma = cov1 + cov2 - 2 * sqrtm(sqrtm(cov1) @ cov2 @ sqrtm(cov1))
+    dist = np.linalg.norm(mu1 - mu2)**2 + np.matrix.trace(sigma)
     return dist
+
