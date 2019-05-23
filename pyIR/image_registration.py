@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 na = np.newaxis
 
 n_s = 50
-Ximg, Ximg_black, Ximg_s = getImage("../images/test/rectangle0.png", n_s=n_s)
-Yimg, Yimg_black, Yimg_s = getImage("../images/test/rectangle1.png", n_s=n_s)
+Ximg, Ximg_black, Ximg_s = getImage("../images/test/cat0.png", n_s=n_s)
+Yimg, Yimg_black, Yimg_s = getImage("../images/test/cat2.png", n_s=n_s)
 
 # Position and color of all image pixels
 xij, X = Ximg_black
@@ -37,7 +37,7 @@ else :
     x_points, X_black = Ximg_black
     y_points, Y_black = Yimg_black
     # Gaussian fits
-    Ng = 2
+    Ng = 25
     x = fit_gaussians(x_points, Ng)
     y = fit_gaussians(y_points, Ng)
     # routines for gaussians
@@ -53,6 +53,7 @@ A, b = get_t(x, y, pi, distance, affine_transfo, pi_prod)
 zij = np.dot(A[na,:,:], xij.T).T[:,:,0] + b[na,:]
 
 
-plt.scatter(xij[:,0], xij[:, 1])
-plt.scatter(yij[:,0], yij[:, 1])
-plt.scatter(zij[:,0], zij[:, 1])
+plt.cla()
+plt.scatter(xij[:,0], xij[:, 1], marker=".")
+plt.scatter(yij[:,0], yij[:, 1], marker="x")
+plt.scatter(zij[:,0], zij[:, 1], marker="+")
