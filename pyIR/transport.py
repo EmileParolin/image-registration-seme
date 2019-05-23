@@ -3,19 +3,22 @@ import scipy
 from scipy.optimize import linprog
 from scipy.optimize import fmin_cg
 from scipy.sparse import coo_matrix
-from scipy.linalg import sqrtm
-import matplotlib.pyplot as plt
 na = np.newaxis
 
 
-def get_pi(x, y):
+def get_pi(x, y, distance):
     """
     Get matrix of optimal transport problem.
     """
     # Number of points
-    N = x.shape[0]
-    # Cost vector
-    c = (np.linalg.norm(x[:,:,na]-y.T[na,:,:], axis=1).reshape(N*N))**2
+    N = len(x)
+    assert len(x) == len(y)
+    # Cost matrix
+    c = np.zeros((N,N), dtype=np.float64)
+    for i in np.arange(N):
+        for j in np.arange(N):
+            c[i,j] = distance(x[i], y[j]) ** 2
+    c = c.reshape(N*N)
     # 2 * N * N constraints
     ln = np.linspace(0,N-1,N, dtype=np.int64)
     ii_1 = np.repeat(ln, N).reshape(N*N)
@@ -33,59 +36,56 @@ def get_pi(x, y):
     return res, pi
 
 
+def phi(t, *args):
+    """
+    Objective function to minimize to obtain the linear map.
+    """
+    x, y, distance, affine_transfo = args
+    N = len(x)
+    assert len(x) == len(y)
+    A, b = get_Ab(t)
+    r = 0.
+    for i in np.arange(N):
+        r += distance(affine_transfo(A, b, x[i]), y[i]) ** 2
+    return r
+
+
 def get_Ab(t):
+    """
+    Computes linear transformation attributes (namely matrix A and vector b)
+    from unknown vector fed to optimization routine (coefficients of A and b in
+    a unique vector).
+    """
     A = t[0:4].reshape(2,2)
     b = t[4:6]
+
+    #A = t[0] * np.array([[np.cos(t[1]), -np.sin(t[1])], [np.sin(t[1]), np.cos(t[1])]])
+    #b = t[2:4]
+
+    #A = t[0] * np.array([[np.cos(t[1]), -np.sin(t[1])], [np.sin(t[1]), np.cos(t[1])]])
+    #b = np.zeros(2)
     return A, b
 
 
-def phi(t, *args):
-    x, y = args
-    A, b = get_Ab(t)
-    r = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:] - y
-    n = np.linalg.norm(r, axis=1)**2
-    return np.sum(n)
-
-
-def get_t(x, y, pi):
-    piy = np.sum(pi[:,:,na] * y[na,:,:], axis=1)
+def get_initial_guess():
     x0 = np.zeros(6)
     x0[0] = 1
     x0[3] = 1
-    A, b = get_Ab(fmin_cg(phi, x0, args=(x, piy)))
+
+    #x0 = np.zeros(4)
+    #x0[0] = 1
+
+    #x0 = np.zeros(2)
+    #x0[0] = 1
+    return x0
+
+
+def get_t(x, y, pi, distance, affine_transfo, pi_prod):
+    """
+    Compute linear transformation
+    """
+    piy = pi_prod(pi, y)
+    x0 = get_initial_guess()
+    args = (x, piy, distance, affine_transfo)
+    A, b = get_Ab(fmin_cg(phi, x0, args=args))
     return A, b
-
-
-def wasserstein(gauss1, gauss2):
-    mu1 = gauss1[0]
-    mu2 = gauss2[0]
-    
-    cov1 = gauss1[1]
-    cov2 = gauss2[1]
-    
-    sigma = cov1 + cov2 - 2 * sqrtm(sqrtm(cov1) @ cov2 @ sqrtm(cov1))
-    dist = np.linalg.norm(mu1 - mu2)**2 + np.matrix.trace(sigma)
-    return dist
-
-def gaussian_transfo(A, b, y):
-    prod = []
-    for i in range(len(y)):
-        prod.append((A @ y[i][0] + b, A @ y[i][1] @ A.T))
-    return prod
-
-def gaussian_pi_prod(pi, y):   
-    prod_mean = []
-    prod_var = []
-
-    for i in range(len(y)):
-        prod_m = 0
-        prod_v = 0
-        for j in range(len(y)):
-            prod_m += (pi[i,j]) * y[j][0]
-            prod_v += ((pi[i,j])**2) * y[j][1]
-
-        prod_mean.append(prod_m)
-        prod_var.append(prod_v)
-
-    
-    return [(prod_mean[i], prod_var[i]) for i in range(len(y))]
