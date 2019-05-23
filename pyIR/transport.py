@@ -72,3 +72,20 @@ def gaussian_transfo(A, b, y):
     for i in range(len(y)):
         prod.append((A @ y[i][0] + b, A @ y[i][1] @ A.T))
     return prod
+
+def gaussian_pi_prod(pi, y):   
+    prod_mean = []
+    prod_var = []
+
+    for i in range(len(y)):
+        prod_m = 0
+        prod_v = 0
+        for j in range(len(y)):
+            prod_m += (pi[i,j]) * y[j][0]
+            prod_v += ((pi[i,j])**2) * y[j][1]
+
+        prod_mean.append(prod_m)
+        prod_var.append(prod_v)
+
+    
+    return [(prod_mean[i], prod_var[i]) for i in range(len(y))]
