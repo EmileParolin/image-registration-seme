@@ -13,7 +13,7 @@ def wasserstein_distance(gauss1, gauss2):
     cov1 = gauss1[1]
     cov2 = gauss2[1]
     sigma = cov1 + cov2 - 2 * sqrtm(sqrtm(cov1) @ cov2 @ sqrtm(cov1))
-    dist = np.linalg.norm(mu1 - mu2)**2 + np.matrix.trace(sigma)
+    dist = np.linalg.norm(mu1 - mu2) ** 2 + np.matrix.trace(sigma)
     return dist
 
 
@@ -21,10 +21,7 @@ def gaussian_affine_transfo(A, b, x):
     """
     Affine transformation applied to a gaussian x: Tx = Ax + b.
     """
-    prod = []
-    for i in range(len(x)):
-        prod.append((A @ x[i][0] + b, A @ x[i][1] @ A.T))
-    return prod
+    return (A @ x[0] + b, A @ x[1] @ A.T)
 
 
 def gaussian_pi_prod(pi, y):

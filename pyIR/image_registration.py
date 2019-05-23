@@ -37,7 +37,7 @@ else :
     x_points, X_black = Ximg_black
     y_points, Y_black = Yimg_black
     # Gaussian fits
-    Ng = 10
+    Ng = 2
     x = fit_gaussians(x_points, Ng)
     y = fit_gaussians(y_points, Ng)
     # routines for gaussians
@@ -56,4 +56,3 @@ zij = np.dot(A[na,:,:], xij.T).T[:,:,0] + b[na,:]
 plt.scatter(xij[:,0], xij[:, 1])
 plt.scatter(yij[:,0], yij[:, 1])
 plt.scatter(zij[:,0], zij[:, 1])
-
