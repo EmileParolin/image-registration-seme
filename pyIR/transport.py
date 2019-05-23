@@ -1,10 +1,9 @@
 import numpy as np
 import scipy
 from scipy.optimize import linprog
+from scipy.optimize import fmin_cg
 from scipy.sparse import coo_matrix
-import cvxopt # Quadratic optimization
-from cvxopt import matrix
-from cvxopt import solvers
+import matplotlib.pyplot as plt
 na = np.newaxis
 
 
@@ -25,43 +24,55 @@ def get_pi(x, y):
     ii = np.hstack((ii_1, ii_2))
     jj = np.hstack((jj_1, jj_2))
     data = np.ones(2*N*N)
-    A = coo_matrix((data,(ii, jj)))
-    b = np.ones(2*N, dtype=np.int64)
+    A = (coo_matrix((data,(ii, jj)))).todense()[0:-1,:]
+    b = np.ones(2*N, dtype=np.int64)[0:-1]
     # Linear programming
-    res = linprog(c, A_eq=A.todense(), b_eq=b)
+    res = linprog(c, A_eq=A, b_eq=b)
     pi = res.x.reshape(N,N)
     return res, pi
 
 
+def get_Ab(t):
+    A = t[0:4].reshape(2,2)
+    b = t[4:6]
+    return A, b
+
+
+def phi(t, *args):
+    x, y = args
+    A, b = get_Ab(t)
+    r = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:] - y
+    n = np.linalg.norm(r, axis=1)**2
+    return np.sum(n)
+
+
 def get_t(x, y, pi):
-    """
-    Compute linear transformation corresponding for a given optimal
-    transformation matrix.
-    """
-    piy = np.sum(pi[:,:,na] * y[:,na,:], axis=0)
-    # matrix M in argmin_x (x'Mx + q'x)
-    mis = x[:,na,:] * x[:,:,na]
-    Mis = np.kron(np.eye(2), mis)
-    M = np.sum(Mis, axis=0)
-    # vector q in argmin_x (x'Mx + q'x)
-    qis = -2*np.sum(np.tile(x,2) * np.repeat(piy,2,axis=1), axis=0)
-    q = -2*np.sum(qis, axis=0)
-    # Quadratic optimization
-    sol = solvers.qp(2*matrix(M), matrix(q))
-    A = np.asarray(sol['x']).reshape(2,2)
-    # affine part of transformation
-    b = np.mean(y-x, axis=0)
-    #b = np.mean(y-np.sum(A[na,:,:] * x[:,na,:], axis=1)*x, axis=0)
-    return sol, A, b
+    piy = np.sum(pi[:,:,na] * y[na,:,:], axis=1)
+    x0 = np.zeros(6)
+    x0[0] = 1
+    x0[3] = 1
+    A, b = get_Ab(fmin_cg(phi, x0, args=(x, piy)))
+    return A, b
 
 
-N = 25
-x = np.vstack((np.linspace(1,N,N), np.linspace(1,N,N))).T
-x.shape
-y = 4*x[::-1]+2
+N = 50
+A = 7*np.eye(2)
+b = np.asarray([2., 3.])
+x = np.vstack((np.random.normal(0,1,N), np.random.normal(10,4,N))).T
+y = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
 
-x = np.array([[-1,-1], [-1,1], [1,-1], [6,1]])
-y = 4 * x + 2
+N = 50
+x = np.vstack((np.sort(np.random.normal(0,1,N)), np.sort(np.random.normal(0,10,N)))).T
+y = np.vstack((np.sort(np.random.normal(10,10,N)), np.sort(np.random.normal(3,1,N)))).T
+
+N = 50
+x = np.vstack((np.random.normal(0,1,N), np.random.normal(0,10,N))).T
+y = np.vstack((np.random.normal(10,10,N), np.random.normal(3,5,N))).T
 
 res, pi = get_pi(x, y)
-sol, A, b = get_t(x, y, pi)
+A, b = get_t(x, y, pi)
+z = np.dot(A[na,:,:], x.T).T[:,:,0] + b[na,:]
+
+plt.scatter(x[:,0], x[:,1])
+plt.scatter(y[:,0], y[:,1])
+plt.scatter(z[:,0], z[:,1])
