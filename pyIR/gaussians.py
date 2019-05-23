@@ -13,7 +13,7 @@ def wasserstein_distance(gauss1, gauss2):
     cov1 = gauss1[1]
     cov2 = gauss2[1]
     sigma = cov1 + cov2 - 2 * sqrtm(sqrtm(cov1) @ cov2 @ sqrtm(cov1))
-    dist = np.linalg.norm(mu1 - mu2) ** 2 + np.matrix.trace(sigma)
+    dist = np.sqrt(np.linalg.norm(mu1 - mu2) ** 2 + np.matrix.trace(sigma))
     return dist
 
 
