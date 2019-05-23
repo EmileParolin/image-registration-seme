@@ -24,10 +24,10 @@ def get_pi(x, y):
     ii = np.hstack((ii_1, ii_2))
     jj = np.hstack((jj_1, jj_2))
     data = np.ones(2*N*N)
-    A = coo_matrix((data,(ii, jj)))
-    b = np.ones(2*N, dtype=np.int64)
+    A = (coo_matrix((data,(ii, jj)))).todense()[0:-1,:]
+    b = np.ones(2*N, dtype=np.int64)[0:-1]
     # Linear programming
-    res = linprog(c, A_eq=A.todense(), b_eq=b)
+    res = linprog(c, A_eq=A, b_eq=b)
     pi = res.x.reshape(N,N)
     return res, pi
 
