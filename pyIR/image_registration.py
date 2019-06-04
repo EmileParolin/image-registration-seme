@@ -107,6 +107,7 @@ def image_registration(source, target, n_s, threshold, Ng, use_points):
     plt.scatter(xij_black[:,0], xij_black[:,1], marker=".", label="source")
     plt.scatter(yij_black[:,0], yij_black[:,1], marker="x", label="target")
     plt.scatter(zij_black[:,0], zij_black[:,1], marker="+", label="reconstructed")
+    plt.gca().set_aspect('equal', adjustable='box')
     plt.legend()
 
     return res, sol, pi, A, b, (xij, yij, xij_black, yij_black, xij_s, yij_s, XBW, XRGB, YBW, YRGB)
@@ -134,11 +135,12 @@ if False :
     source = "../images/test/malevich0.png"
     target = "../images/test/malevich3.png"
     res, sol, pi, A, b, x = image_registration(source, target, 50, 0.2, 2, False)
+    reconstruct_colored_image(A, b, x[0], x[1], x[7], x[9], "malevich")
 
     # Malevich rotation
     source = "../images/test/malevich0.png"
     target = "../images/test/malevich1.png"
-    res, sol, pi, A, b, x = image_registration(source, target, 50, 0.2, 2, False)
+    res, sol, pi, A, b, x = image_registration(source, target, 50, 0.2, 5, False)
 
     # Pacman, does not works well
     source = "../images/test/pacman0.png"
