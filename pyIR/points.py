@@ -2,6 +2,18 @@ import numpy as np
 na = np.newaxis
 
 
+def uniform_sampling(x, K = 250):
+    """
+    Uniform sampling of K points among cloud of points x.
+    """
+    # Number of points
+    N = x.shape[0]
+    # Sampling without replacement
+    sampled = np.random.choice(np.arange(1,N), size=min(K, N-1), replace=False)
+    # Matrix of sampled black coordinates
+    return x[sampled,:]
+
+
 def euclidian_distance(x, y):
     """
     Euclidian norm between two points.
