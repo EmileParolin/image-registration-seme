@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 from .image import get_image
@@ -7,11 +8,13 @@ from .image import points_above_threshold
 from .points import euclidian_distance
 from .points import euclidian_affine_transfo
 from .points import points_pi_prod
+from .points import uniform_sampling
 
 from .gaussians import wasserstein_distance
 from .gaussians import gaussian_affine_transfo
 from .gaussians import gaussian_pi_prod
 from .gaussians import fit_gaussians
+from .gaussians import gaussian2ellipse
 
 from .transport import get_pi
 
@@ -69,6 +72,39 @@ def image_registration(source, target, threshold=0.2, K=50, use_gaussians=True):
     return A, b, res, sol, pi, src, tgt
 
 
+def plot_ellipses(mu, p=0.95, c='red', thickness=1):
+    """
+    Utility function to plot ellipses from a Gaussian density mu.
+    """
+    for gauss in mu :
+        # Computing Ellipse representing the Gaussian distribution
+        x, width, height, alpha = gaussian2ellipse(gauss, p)
+        # Plotting commands
+        e = matplotlib.patches.Ellipse(x, width, height, alpha,
+                facecolor='none', edgecolor=c, lw=thickness)
+        plt.gca().add_patch(e) # Ellipse
+        plt.scatter(x[0], x[1], c=c, s=5) # Center
+
+
+def plot_model(ij_black, mu, name, use_gaussians=True, p=0.95):
+    """
+    Plot selected points above threshold and the model of the image.
+
+    p is the confidence interval (only used to represent a Gaussian by an
+    ellipse).
+    """
+    # Plot shape (points above threshold)
+    plt.cla()
+    plt.scatter(ij_black[:,0], ij_black[:,1], marker='s', color='black')
+    # Plot model
+    if use_gaussians :
+        plot_ellipses(mu, p=p)
+    else :
+        plt.scatter(mu[:,0], mu[:,1], marker='.', color='red')
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.savefig(name+"_model")
+
+
 def plot_images(A, b, ij_1, ij_2):
     """
     Utility function to compute the image of the source by the affine
@@ -77,9 +113,9 @@ def plot_images(A, b, ij_1, ij_2):
     # Image reconstruction using affine transformation
     ij_3 = apply_t(A, b, ij_1)
     plt.cla()
-    plt.scatter(ij_1[:,0], ij_1[:, 1], marker=".", label="mu_1")
-    plt.scatter(ij_2[:,0], ij_2[:, 1], marker="x", label="mu_2")
-    plt.scatter(ij_3[:,0], ij_3[:, 1], marker="+", label="T mu_1")
+    plt.scatter(ij_1[:,0], ij_1[:, 1], marker=".", label="mu_1", c='black')
+    plt.scatter(ij_2[:,0], ij_2[:, 1], marker="x", label="mu_2", c='red')
+    plt.scatter(ij_3[:,0], ij_3[:, 1], marker="+", label="T mu_1", c='blue')
     plt.legend()
 
 

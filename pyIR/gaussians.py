@@ -22,10 +22,8 @@ def wasserstein_distance(gauss1, gauss2):
     """
     Wasserstein distance between two gaussians.
     """
-    mu1 = gauss1[0]
-    mu2 = gauss2[0]
-    cov1 = gauss1[1]
-    cov2 = gauss2[1]
+    mu1, cov1 = gauss1
+    mu2, cov2 = gauss2
     sigma = cov1 + cov2 - 2 * sqrtm(sqrtm(cov1) @ cov2 @ sqrtm(cov1))
     dist = np.sqrt(np.linalg.norm(mu1 - mu2) ** 2 + np.matrix.trace(sigma))
     return dist
@@ -54,3 +52,16 @@ def gaussian_pi_prod(Pi, x):
             means[i] += Pi[i,j] * x[j][0]
             covariances[i] += Pi[i,j] * x[j][1]
     return [(means[i], covariances[i]) for i in range(N)]
+
+
+def gaussian2ellipse(gauss, p=0.95):
+    """
+    Computes Gaussian attributes, for plotting purposes.
+    """
+    x, Sigma = gauss
+    s = -2 * np.log(1 - p)
+    w, v = np.linalg.eig(Sigma)
+    width, height = 2 * np.sqrt(s * w)
+    alpha = np.arctan2(v[1,0], v[0,0]) * 180 / np.pi
+    return x, width, height, alpha
+
